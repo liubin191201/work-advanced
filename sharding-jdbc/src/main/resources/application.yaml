@@ -120,6 +120,12 @@ spring:
               # 声明分表的节点数量
               sharding-count: 2
 
+          key-int-mod:
+            type: MOD
+            props:
+              sharding-count: 2
+
+
 
         #主键生成策略
         key-generators:
