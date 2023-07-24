@@ -104,15 +104,15 @@ spring:
                 # 配置路由键为shoping_id（数据库中的列名）
                 sharding-column: shoping_id
                 # 配置分片算法（需要配置一个名词，通过别名指向具体的策略）
-                sharding-algorithm-name: db-inline-mod
+                sharding-algorithm-name:  db-inline-mod
 
             #配置分表规则
             table-strategy:
               standard:
                 # 配置路由键为shoping_name（数据库中的列名）
-                sharding-column: shoping_name
+                sharding-column: shoping_id
                 # 配置分片算法（需要配置一个名词，通过别名指向具体的策略）
-                sharding-algorithm-name:  key-hash-mod
+                sharding-algorithm-name:  shop-standard-sharding
 
         sharding-algorithms:
           # 配置前面的分库算法
@@ -133,6 +133,20 @@ spring:
             type: MOD
             props:
               sharding-count: 2
+
+          # 配置一个自定义的Standard分片算法
+          shop-standard-sharding:
+            # 声明使用自定义的算法实现类
+            type: CLASS_BASED
+            props:
+              # 声明分片策略
+              strategy: STANDARD
+              # 指明算法实现类（配置全限定名）
+              algorithmClassName: com.example.shardingjdbc.shardingAlgorithm.ShopStarndSA
+
+
+
+
 
 
 
