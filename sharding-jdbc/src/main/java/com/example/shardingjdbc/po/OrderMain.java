@@ -7,10 +7,11 @@ import java.io.Serializable;
 
 @Data
 @Entity
-public class Order implements Serializable {
+public class OrderMain implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "JDBC")
+    @Column(name = "order_id")
+    //@GeneratedValue(generator = "JDBC")
     private Long orderId;
 
     @Column(name = "order_price")

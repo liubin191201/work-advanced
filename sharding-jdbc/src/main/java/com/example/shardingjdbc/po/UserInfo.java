@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class UserInfo implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "JDBC")
+    //@GeneratedValue(generator = "JDBC")
     private Long userId;
 
     @Column(name = "user_name")

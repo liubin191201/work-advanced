@@ -10,7 +10,8 @@ import java.io.Serializable;
 public class OrderInfo implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "JDBC")
+    //@GeneratedValue(generator = "JDBC")
+    @Column(name = "order_info_id")
     private Long orderInfoId;
 
     @Column(name = "order_id")
