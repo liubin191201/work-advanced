@@ -123,8 +123,8 @@ public class ZhuziTxParticaipant {
         return currentGroupId.get();
     }
 
-    public static void setTransactionalCount(int i) {
-        transactionalCount.set(i);
+    public static void setCurrentGroupId(String groupId) {
+        currentGroupId.set(groupId);
     }
 
     public static ZhuziTx getZhuziTransactionalMap(String groupId) {

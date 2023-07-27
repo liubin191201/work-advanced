@@ -16,8 +16,8 @@ public class Task {
     //阻塞挂起线程的方法
     public void  waitTask(){
         log.info("事务控制权已经被拦截挂起");
+        lock.lock();
         try {
-            lock.lock();
             condition.await();
         }catch (InterruptedException e) {
             e.printStackTrace();

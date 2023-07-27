@@ -1,6 +1,8 @@
 package com.word.advanced.distributedtxclient.connection;
 
+import com.example.core.enums.TransactionType;
 import com.word.advanced.distributedtxclient.transactional.ZhuziTx;
+import lombok.extern.log4j.Log4j2;
 
 import java.sql.*;
 import java.util.Map;
@@ -9,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Log4j2
 public class ZhuziConnection implements Connection {
 
     //原本应该返回的数据库连接对象
@@ -30,20 +33,59 @@ public class ZhuziConnection implements Connection {
     @Override
     public void commit() throws SQLException {
         //交给线程池中的线程来做最终的事务提交
-        commitT.execute(()->{
+        commitT.execute(() -> {
+            try {
+                //阻塞线程，禁止提交
+                zhuziTx.getTask().waitTask();
+                //如果管理者返回事务可以提交，则提交事务
+                if (zhuziTx.getTransactionType().equals(TransactionType.commit)) {
+                    log.info("收到管理者最终决断：提交事务中");
+                    connection.commit();
+                    log.info("子事物提交事务成功");
+                } else {
+                    //否则调用rollback()方法回滚事务
+                    log.info("收到管理者最终决断：回滚事务中");
+                    connection.rollback();
+                    log.info("子事物回滚事务成功");
+                }
 
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void rollback() throws SQLException {
+        //交给线程池中的线程做最终的事务回顾
+        rollbackT.execute(() -> {
+            zhuziTx.getTask().waitTask();
+            try {
+                connection.rollback();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }finally {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         });
 
 
     }
 
     @Override
-    public void rollback() throws SQLException {
-
-    }
-
-    @Override
     public void close() throws SQLException {
+        connection.close();
 
     }
 
@@ -78,7 +120,6 @@ public class ZhuziConnection implements Connection {
     }
 
 
-
     @Override
     public boolean isClosed() throws SQLException {
         return false;
@@ -91,7 +132,7 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public void setReadOnly(boolean readOnly) throws SQLException {
-            connection.setReadOnly(readOnly);
+        connection.setReadOnly(readOnly);
     }
 
     @Override
@@ -133,17 +174,17 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-        return connection.createStatement(resultSetType,resultSetConcurrency);
+        return connection.createStatement(resultSetType, resultSetConcurrency);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        return connection.prepareStatement(sql,resultSetType,resultSetConcurrency);
+        return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        return connection.prepareCall(sql,resultSetType,resultSetConcurrency);
+        return connection.prepareCall(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
@@ -153,7 +194,7 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
-            connection.setTypeMap(map);
+        connection.setTypeMap(map);
     }
 
     @Override
@@ -189,32 +230,32 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return connection.createStatement(resultSetType,resultSetConcurrency,resultSetHoldability);
+        return connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return connection.prepareStatement(sql,resultSetType,resultSetConcurrency,resultSetHoldability);
+        return connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
     public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return connection.prepareCall(sql,resultSetType,resultSetConcurrency,resultSetHoldability);
+        return connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-        return connection.prepareStatement(sql,autoGeneratedKeys);
+        return connection.prepareStatement(sql, autoGeneratedKeys);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-        return connection.prepareStatement(sql,columnIndexes);
+        return connection.prepareStatement(sql, columnIndexes);
     }
 
     @Override
     public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-        return connection.prepareStatement(sql,columnNames);
+        return connection.prepareStatement(sql, columnNames);
     }
 
     @Override
@@ -244,7 +285,7 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public void setClientInfo(String name, String value) throws SQLClientInfoException {
-        connection.setClientInfo(name,value);
+        connection.setClientInfo(name, value);
     }
 
     @Override
@@ -264,12 +305,12 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
-        return connection.createArrayOf(typeName,elements);
+        return connection.createArrayOf(typeName, elements);
     }
 
     @Override
     public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
-        return connection.createStruct(typeName,attributes);
+        return connection.createStruct(typeName, attributes);
     }
 
     @Override
@@ -285,12 +326,12 @@ public class ZhuziConnection implements Connection {
 
     @Override
     public void abort(Executor executor) throws SQLException {
-            connection.abort(executor);
+        connection.abort(executor);
     }
 
     @Override
     public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
-            connection.setNetworkTimeout(executor,milliseconds);
+        connection.setNetworkTimeout(executor, milliseconds);
     }
 
     @Override
